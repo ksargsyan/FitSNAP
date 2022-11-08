@@ -1,3 +1,12 @@
+# ignoring run example files
+examples/*
+
+# ignoring built test docs
+docs/build/
+
+# ignoring VS Code workspace file
+*.code-workspace
+
 # ignoring .pyc files
 *.pyc
 
@@ -11,3 +20,9 @@
 
 # ignoring intermediate files
 *.swp
+
+# ignore MacOS generated files
+*.DS_Store
+
+# ignore PACE library files
+fitsnap3lib/lib/sym_ACE/lib/*.pickle
