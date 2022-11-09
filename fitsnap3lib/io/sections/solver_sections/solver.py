@@ -9,8 +9,9 @@ class Solver(Section):
                             'compute_testerrs', 'detailed_errors', \
                             'nsam', 'cov_nugget', \
                             'mcmc_num', 'mcmc_gamma', \
-                            'merr_mult', 'merr_method', "merr_cfs"]
-        self.allowedkeys = ['solver', 'normalweight', 'normratio', 'compute_testerrs', 'detailed_errors', 'alphabig', 'alphasmall', 'lambdabig', 'lambdasmall', 'threshold_lambda']
+                            'merr_mult', 'merr_method', 'merr_optmethod', 'merr_cfs',
+                            'merr_fixfit']
+        self.allowedkeys.extend(['alphabig', 'alphasmall', 'lambdabig', 'lambdasmall', 'threshold_lambda'])
 #>>>>>>> adapted for per-atom descriptor values in the LAMMPS compute
         self._check_section()
 
