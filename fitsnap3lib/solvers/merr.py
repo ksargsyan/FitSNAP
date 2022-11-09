@@ -58,7 +58,10 @@ class MERR(Solver):
             
             merr_mult = config.sections["SOLVER"].merr_mult
             merr_method = config.sections["SOLVER"].merr_method
+            merr_optmethod = config.sections["SOLVER"].merr_optmethod
             merr_cfs_str = config.sections["SOLVER"].merr_cfs
+            merr_fixfit_str = config.sections["SOLVER"].merr_fixfit
+
             if merr_cfs_str == 'all':
                 ind_embed = None
                 print("Embedding model error in all coefficients")
@@ -69,9 +72,16 @@ class MERR(Solver):
                     ind_embed.append(int(i))
                 print("Embedding model error in coefficients: ", ind_embed)
 
+            if bool(merr_fixfit_str):
+                cf_fixed = cf.copy()
+            else:
+                cf_fixed = None
+
             lreg = lreg_merr(ind_embed=ind_embed, datavar=sigmahat,
-                             multiplicative=bool(merr_mult), merr_method=merr_method,
-                             method='bfgs')
+                             multiplicative=bool(merr_mult),
+                             merr_method=merr_method,
+                             method=merr_optmethod,
+                             cf_fixed=cf_fixed)
 
             lreg.fit(aw, bw)
             self.fit = lreg.cf.copy()

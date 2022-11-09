@@ -16,6 +16,7 @@ class lreg(object):
     def __init__(self):
         self.cf = None
         self.cf_cov = None
+        self.datavar = 0.0
         self.fitted = False
         return
 
@@ -29,21 +30,60 @@ class lreg(object):
 
         return
 
+    def predict(self, Amat, msc=0, pp=True):
+        raise NotImplementedError
 
-    def predict(self, Amat, cov=False):
-        assert(self.fitted)
-        ypred = Amat @ self.cf
-        if cov:
-            ss = Amat @ self.cf_cov
-            ypred_cov = ss @ Amat.T + self.datavar*np.eye(Amat.shape[0])#this is overkill, right now we only care about variance
-            # clean this, i.e. make sure base class defines self.datavar
-            # Also, is this correct for multiplicative noise case??
-        else:
-            ypred_cov = None #np.zeros((Amat.shape[1], Amat.shape[1])) #None
+    # def predict(self, Amat, msc=0, pp=True):
+    #     assert(self.fitted)
+    #     if pp:
+    #         factor = 1.0
+    #     else:
+    #         factor = 0.0
+    #     ypred = Amat @ self.cf
+    #     if msc==2:
+    #         ypred_cov = (Amat @ self.cf_cov) @ Amat.T + factor*self.datavar*np.eye(Amat.shape[0])
+    #         ypred_var = np.diag(ypred_cov)
+    #     elif msc==1:
+    #         ypred_cov = None
+    #         try:
+    #             ypred_var = self.compute_stdev(Amat, method='chol')**2 +factor*self.datavar
+    #         except np.linalg.LinAlgError:
+    #             ypred_var = self.compute_stdev(Amat, method='svd')**2 +factor*self.datavar
+    #     elif msc==0:
+    #         ypred_cov = None #np.zeros((Amat.shape[1], Amat.shape[1]))
+    #         ypred_var = None #np.zeros((Amat.shape[1],))
+    #     else:
+    #         print(f"msc={msc}, but needs to be 0,1, or 2. Exiting.")
+    #         sys.exit()
 
-        return ypred, ypred_cov
+    #     return ypred, ypred_var, ypred_cov
 
+    # def compute_stdev(self, Amat, method="chol"):
+    #     assert(self.cf_cov is not None)
+    #     if method == "chol":
+    #         chol = np.linalg.cholesky(self.cf_cov)
+    #         mat = Amat @ chol
+    #         pf_stdev = np.linalg.norm(mat, axis=1)
+    #     elif method == "choleye":
+    #         eigvals = np.linalg.eigvalsh(self.cf_cov)
+    #         chol = np.linalg.cholesky(self.cf_cov+(abs(eigvals[0]) + 1e-14) * np.eye(self.cf_cov.shape[0]))
+    #         mat = Amat @ chol
+    #         pf_stdev = np.linalg.norm(mat, axis=1)
+    #     elif method == "svd":
+    #         u, s, vh = np.linalg.svd(self.cf_cov, hermitian=True)
+    #         mat = (Amat @ u) @ np.sqrt(np.diag(s))
+    #         pf_stdev = np.linalg.norm(mat, axis=1)
+    #     elif method == "loop":
+    #         tmp = np.dot(Amat, self.cf_cov)
+    #         pf_stdev = np.empty(Amat.shape[0])
+    #         for ipt in range(Amat.shape[0]):
+    #             pf_stdev[ipt] = np.sqrt(np.dot(tmp[ipt, :], Amat[ipt, :]))
+    #     elif method == "fullcov":
+    #         pf_stdev = np.sqrt(np.diag((Amat @ self.cf_cov) @ Amat.T))
+    #     else:
+    #         pf_stdev = np.zeros(Amat.shape[0])
 
+    #     return pf_stdev
 
 # Bare minimum least squares solution
 # (note: scipy's lstsq uses svd under the hood)
@@ -125,7 +165,7 @@ def logpost_emb(x, aw=None, bw=None, ind_sig=None, datavar=0.0, multiplicative=F
 
 
 class lreg_merr(lreg):
-    def __init__(self, ind_embed=None, datavar=0.0, multiplicative=False, merr_method='abc', method='bfgs'):
+    def __init__(self, ind_embed=None, datavar=0.0, multiplicative=False, merr_method='abc', method='bfgs', cfs_fixed=None):
         super(lreg_merr, self).__init__()
 
         self.ind_embed = ind_embed
@@ -133,6 +173,7 @@ class lreg_merr(lreg):
         self.multiplicative = multiplicative
         self.merr_method = merr_method
         self.method = method
+        self.cfs_fixed = cfs_fixed
         return
 
     def fit(self, A, y):
@@ -144,12 +185,15 @@ class lreg_merr(lreg):
 
         nbas_emb = len(self.ind_embed)
 
-        logpost_params = {'aw': A, 'bw':y, 'ind_sig':self.ind_embed, 'datavar':self.datavar, 'multiplicative':self.multiplicative, 'merr_method':self.merr_method}
+        logpost_params = {'aw': A, 'bw':y, 'ind_sig':self.ind_embed, 'datavar':self.datavar, 'multiplicative':self.multiplicative, 'merr_method':self.merr_method, 'cfs':self.cfs_fixed}
 
-        params_ini = np.random.rand(nbas+nbas_emb)
-        #params_ini[:nbas], residues, rank, s = lstsq(A, y, 1.0e-13)
-        invptp = np.linalg.inv(np.dot(A.T, A)+1.e-6*np.diag(np.ones((nbas,))))
-        params_ini[:nbas] = np.dot(invptp, np.dot(A.T, y))
+        if self.cfs_fixed is None:
+            params_ini = np.random.rand(nbas+nbas_emb)
+            #params_ini[:nbas], residues, rank, s = lstsq(A, y, 1.0e-13)
+            invptp = np.linalg.inv(np.dot(A.T, A)+1.e-6*np.diag(np.ones((nbas,))))
+            params_ini[:nbas] = np.dot(invptp, np.dot(A.T, y))
+        else:
+            params_ini = np.random.rand(nbas_emb)
 
         if self.method == 'mcmc':
 
@@ -173,15 +217,20 @@ class lreg_merr(lreg):
 
             np.savetxt('chn.txt', samples)
             np.savetxt('mapparam.txt', cmode)
-            coeffs = cmode[:nbas]
-            coefs_sig = cmode[nbas:]
+
+            solution = cmode.copy()
 
         elif self.method == 'bfgs':
             #params_ini[nbas:] = np.random.rand(nbas_emb,)
             res = minimize((lambda x, fcn, p: -fcn(x, **p)), params_ini, args=(logpost_emb, logpost_params), method='BFGS', options={'gtol': 1e-3})
-            #print(res)
-            coeffs = res.x[:nbas]
-            coefs_sig = res.x[nbas:]
+            solution = res.x.copy()
+
+        if self.cfs_fixed is None:
+            coeffs = solution[:nbas]
+            coefs_sig = solution[nbas:]
+        else:
+            coeffs = self.cfs_fixed.copy()
+            coefs_sig = solution.copy()
 
         self.cf = coeffs
         coefs_sig_all = np.zeros((nbas,))

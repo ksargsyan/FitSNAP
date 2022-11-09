@@ -30,5 +30,8 @@ class Solver(Section):
         self.mcmc_gamma = self.get_value("SOLVER", "mcmc_gamma", "0.01", "float")
         self.merr_mult = self.get_value("SOLVER", "merr_mult", "0", "bool")
         self.merr_method = self.get_value("SOLVER", "merr_method", "abc", "str")
+        self.merr_optmethod = self.get_value("SOLVER", "merr_optmethod", "bfgs", "str")
         self.merr_cfs = self.get_value("SOLVER", "merr_cfs", "all", "str")
+        self.merr_fixfit = self.get_value("SOLVER", "merr_fixfit", "1", "bool")
+
         self.delete()
