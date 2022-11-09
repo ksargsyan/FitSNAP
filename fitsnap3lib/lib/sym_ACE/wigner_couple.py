@@ -2,7 +2,7 @@ import numpy as np
 from fitsnap3lib.lib.sym_ACE.coupling_coeffs import *
 from fitsnap3lib.lib.sym_ACE.tree_method import *
 from fitsnap3lib.lib.sym_ACE.gen_labels import *
-#from sympy.combinatorics import Permutation
+from sympy.combinatorics import Permutation
 from functools import partial
 
 

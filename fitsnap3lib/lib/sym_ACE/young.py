@@ -1,4 +1,4 @@
-#from sympy.combinatorics import Permutation
+from sympy.combinatorics import Permutation
 from fitsnap3lib.lib.sym_ACE.lib.sylow_lib import *
 import math
 from fitsnap3lib.lib.sym_ACE.gen_labels import *

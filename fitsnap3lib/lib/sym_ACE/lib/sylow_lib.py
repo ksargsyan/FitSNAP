@@ -1,5 +1,5 @@
 from fitsnap3lib.lib.sym_ACE.gen_labels import *
-#from sympy.combinatorics import Permutation
+from sympy.combinatorics import Permutation
 
 import sys
 sys.path.append('../')
