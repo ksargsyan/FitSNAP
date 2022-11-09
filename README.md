@@ -11,7 +11,7 @@ A Python package for machine learning potentials with [LAMMPS](https://github.co
 
 **Colab Python notebook tutorial:** [https://colab.research.google.com/github/FitSNAP/FitSNAP/blob/master/tutorial.ipynb](https://colab.research.google.com/github/FitSNAP/FitSNAP/blob/master/tutorial.ipynb)
 
-#### How to cite 
+#### How to cite
 We are currently working on an overview of the code in its current state, stay tuned!
 
 #### Dependencies:

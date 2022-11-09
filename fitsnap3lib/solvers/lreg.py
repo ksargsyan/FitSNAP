@@ -104,12 +104,16 @@ class lsq(lreg):
 
 
 
-def logpost_emb(x, aw=None, bw=None, ind_sig=None, datavar=0.0, multiplicative=False, merr_method='abc'):
+def logpost_emb(x, aw=None, bw=None, ind_sig=None, datavar=0.0, multiplicative=False, merr_method='abc', cfs=None):
     assert(aw is not None and bw is not None)
     npt, nbas = aw.shape
 
-    cfs = x[:nbas]
-    sig_cfs = x[nbas:]
+    if cfs is None:
+        cfs = x[:nbas]
+        sig_cfs = x[nbas:]
+    else:
+        sig_cfs = x.copy()
+
     # if(np.min(sig_cfs)<=0.0):
     #     return -1.e+80
 

@@ -73,15 +73,15 @@ class MERR(Solver):
                 print("Embedding model error in coefficients: ", ind_embed)
 
             if bool(merr_fixfit_str):
-                cf_fixed = cf.copy()
+                cfs_fixed = cf.copy()
             else:
-                cf_fixed = None
+                cfs_fixed = None
 
             lreg = lreg_merr(ind_embed=ind_embed, datavar=sigmahat,
                              multiplicative=bool(merr_mult),
                              merr_method=merr_method,
                              method=merr_optmethod,
-                             cf_fixed=cf_fixed)
+                             cfs_fixed=cfs_fixed)
 
             lreg.fit(aw, bw)
             self.fit = lreg.cf.copy()
